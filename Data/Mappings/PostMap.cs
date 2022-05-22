@@ -26,6 +26,7 @@ public class PostMap : IEntityTypeConfiguration<Post>
             .IsRequired()
             .HasColumnName("LastUpdateDate")
             .HasColumnType("smalldatetime")
+            .HasMaxLength(60)
             .HasDefaultValueSql("getdate()");
         //.HasDefaultValue(DateTime.Now.ToUniversalTime());
 
@@ -49,12 +50,14 @@ public class PostMap : IEntityTypeConfiguration<Post>
             .WithMany(x => x.Posts)
             .UsingEntity<Dictionary<string, object>>(
                 "PostTag",
-                post => post.HasOne<Tag>() // Um Post tem uma tag
+                post => post
+                    .HasOne<Tag>() // Um Post tem uma tag
                     .WithMany() // E essa tag tem muitos posts
                     .HasForeignKey("PostId") // Com uma chave estrangeira chamada PostId
                     .HasConstraintName("FK_PostTag_PostId") // Com o nome descrito entre parenteses
                     .OnDelete(DeleteBehavior.Cascade), // Onde ao deletar será no modelo cascata 
-                tag => tag.HasOne<Post>() // Uma Tag tem um Post
+                tag => tag
+                    .HasOne<Post>() // Uma Tag tem um Post
                     .WithMany() // E esse post tem muitas Tags
                     .HasForeignKey("TagId") // Com uma chave estrangeira chamada TagId
                     .HasConstraintName("FK_PostTag_TagId") // Com o nome descrito entre parenteses

@@ -1,4 +1,5 @@
 namespace BlogApi.Models;
+
 public class Tag : Model
 {
     public string Name { get; set; }
