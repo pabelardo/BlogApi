@@ -39,9 +39,22 @@ builder.Services.AddTransient<TokenService>(); //Também conhecido como life time
 
 var app = builder.Build();
 
+LoadConfiguration(app);
+
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
 
 app.Run();
+
+void LoadConfiguration(WebApplication app)
+{
+    Configuration.JwtKey = app.Configuration.GetValue<string>("JwtKey");
+    Configuration.ApiKeyName = app.Configuration.GetValue<string>("ApiKeyName");
+    Configuration.ApiKey = app.Configuration.GetValue<string>("ApiKey");
+
+    var smtp = new Configuration.SmtpConfiguration();
+    app.Configuration.GetSection("SmtpConfiguration").Bind(smtp);
+    Configuration.Smtp = smtp;
+}
