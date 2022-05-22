@@ -29,7 +29,7 @@ void LoadConfiguration(WebApplication app)
     Configuration.ApiKey = app.Configuration.GetValue<string>("ApiKey");
 
     var smtp = new Configuration.SmtpConfiguration();
-    app.Configuration.GetSection("SmtpConfiguration").Bind(smtp);
+    app.Configuration.GetSection("Smtp").Bind(smtp);
     Configuration.Smtp = smtp;
 }
 
@@ -67,6 +67,8 @@ void ConfigureServices(WebApplicationBuilder builder)
     builder.Services.AddDbContext<BlogDataContext>();
 
     builder.Services.AddTransient<TokenService>(); //Também conhecido como life time, ou seja, o tempo de vida do serviço. No caso do transient, ele sempre cria um novo.
-//builder.Services.AddScoped(); -> A duração dele é por requisição.
-//builder.Services.AddSingleton(); -> 1 por App. Sempre fica na memória da aplicação.
+    //builder.Services.AddScoped(); -> A duração dele é por requisição.
+    //builder.Services.AddSingleton(); -> 1 por App. Sempre fica na memória da aplicação.
+
+    builder.Services.AddTransient<EmailService>();
 }
