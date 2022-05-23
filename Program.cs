@@ -7,6 +7,7 @@ using BlogApi;
 using BlogApi.Data;
 using BlogApi.Services;
 using Microsoft.AspNetCore.ResponseCompression;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,11 +21,12 @@ var app = builder.Build();
 
 LoadConfiguration(app);
 
+app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
-app.UseResponseCompression();
 app.MapControllers();
 app.UseStaticFiles();
+app.UseResponseCompression();
 app.Run();
 
 void LoadConfiguration(WebApplication app)
@@ -84,7 +86,9 @@ void ConfigureMvc(WebApplicationBuilder builder)
 
 void ConfigureServices(WebApplicationBuilder builder)
 {
-    builder.Services.AddDbContext<BlogDataContext>();
+    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+
+    builder.Services.AddDbContext<BlogDataContext>(options => options.UseSqlServer(connectionString));
 
     builder.Services.AddTransient<TokenService>(); //Também conhecido como life time, ou seja, o tempo de vida do serviço. No caso do transient, ele sempre cria um novo.
     //builder.Services.AddScoped(); -> A duração dele é por requisição.

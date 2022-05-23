@@ -11,8 +11,9 @@ public class BlogDataContext : DbContext
     public DbSet<Post> Posts { get; set; }
     public DbSet<User> Users { get; set; }
 
-    protected override void OnConfiguring(DbContextOptionsBuilder options)
-        => options.UseSqlServer("Server=localhost,1433;Database=Blog;User ID=sa;Password=7Bj&PSoc@i@HpmccX4A6Af*2LYXaUwxU");
+    public BlogDataContext(DbContextOptions<BlogDataContext> options) : base(options)
+    {
+    }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
