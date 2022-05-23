@@ -95,7 +95,7 @@ public class AccountController : ControllerBase
 
             return Ok(new ResultViewModel<string>(token, null));
         }
-        catch (Exception e)
+        catch (Exception)
         {
             return StatusCode(500, new ResultViewModel<string>("05X04 - Falha interna no servidor"));
         }
