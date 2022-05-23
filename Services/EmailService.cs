@@ -11,13 +11,14 @@ public class EmailService
         string subject,
         string body,
         string fromName = "Dev da InnoLevels",
-        string fromEmail = "abelardosilv2014@gmail.com")
+        string fromEmail = "pedro.abelardo@innolevels.com.br")
     {
-        var smtpClient = new SmtpClient(Configuration.Smtp.Host, Configuration.Smtp.Port);
-
-        smtpClient.Credentials = new NetworkCredential(Configuration.Smtp.UserName, Configuration.Smtp.Password); //Credenciais de rede
-        smtpClient.DeliveryMethod = SmtpDeliveryMethod.Network; //Passamos o método de entrega que é via SMTP
-        smtpClient.EnableSsl = true; //Estamos utilizando porta segura (587). Se marcar como false, quer dizer que utilizaremos porta 25 e irá falhar.
+        var smtpClient = new SmtpClient(Configuration.Smtp.Host, Configuration.Smtp.Port)
+        {
+            Credentials = new NetworkCredential(Configuration.Smtp.UserName, Configuration.Smtp.Password), //Credenciais de rede
+            DeliveryMethod = SmtpDeliveryMethod.Network, //Passamos o método de entrega que é via SMTP
+            EnableSsl = true //Estamos utilizando porta segura (587). Se marcar como false, quer dizer que utilizaremos porta 25 e irá falhar.
+        };
 
         var mail = new MailMessage
         {
