@@ -17,6 +17,8 @@ ConfigureMvc(builder);
 
 ConfigureServices(builder);
 
+ConfigureSwagger(builder);
+
 var app = builder.Build();
 
 LoadConfiguration(app);
@@ -27,6 +29,17 @@ app.UseAuthorization();
 app.MapControllers();
 app.UseStaticFiles();
 app.UseResponseCompression();
+
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI(options =>
+    {
+        options.SwaggerEndpoint("/swagger/v1/swagger.json", "v1");
+        options.RoutePrefix = string.Empty;
+    });
+}
+
 app.Run();
 
 void LoadConfiguration(WebApplication app)
@@ -95,4 +108,11 @@ void ConfigureServices(WebApplicationBuilder builder)
     //builder.Services.AddSingleton(); -> 1 por App. Sempre fica na memória da aplicação.
 
     builder.Services.AddTransient<EmailService>();
+}
+
+void ConfigureSwagger(WebApplicationBuilder builder)
+{
+    builder.Services.AddEndpointsApiExplorer(); //vai fazer com o que o swagger seja adicionado
+
+    builder.Services.AddSwaggerGen();
 }
