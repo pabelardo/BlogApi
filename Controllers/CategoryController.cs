@@ -5,6 +5,7 @@ using BlogApi.ViewModels;
 using BlogApi.ViewModels.Categories;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace BlogApi.Controllers;
 
@@ -12,12 +13,25 @@ namespace BlogApi.Controllers;
 [Route("v1/categories")]
 public class CategoryController : ControllerBase
 {
+    private readonly BlogDataContext _context;
+    private readonly IMemoryCache _cache;
+
+    public CategoryController(BlogDataContext context, IMemoryCache cache)
+    {
+        _context = context;
+        _cache = cache;
+    }
+
     [HttpGet]
-    public async Task<IActionResult> GetAsync([FromServices] BlogDataContext context)
+    public IActionResult GetAsync()
     {
         try
         {
-            var categories = await context.Categories.ToListAsync();
+            var categories = _cache.GetOrCreate("CategoriesCache", entry =>
+            {
+                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1);
+                return GetCategories(_context);
+            });
         
             return Ok(new ResultViewModel<List<Category>>(categories));
         }
@@ -25,6 +39,11 @@ public class CategoryController : ControllerBase
         {
             return StatusCode(500, new ResultViewModel<List<Category>>("05XE04 - Falha interna no servidor."));
         }
+    }
+
+    private List<Category> GetCategories(BlogDataContext context)
+    {
+        return context.Categories.ToList();
     }
 
     [HttpGet("{id:int}")]
@@ -48,9 +67,7 @@ public class CategoryController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> PostAsync(
-        [FromBody] EditorCategoryViewModel model,
-        [FromServices] BlogDataContext context)
+    public async Task<IActionResult> PostAsync([FromBody] EditorCategoryViewModel model)
     {
         if (!ModelState.IsValid)
             return BadRequest(new ResultViewModel<Category>(ModelState.GetErrors()));
@@ -63,9 +80,9 @@ public class CategoryController : ControllerBase
                 Slug = model.Slug.ToLower()
             };
 
-            await context.Categories.AddAsync(category);
+            await _context.Categories.AddAsync(category);
 
-            await context.SaveChangesAsync();
+            await _context.SaveChangesAsync();
         
             return Created($"v1/categories/{category.Id}", new ResultViewModel<Category>(category));
         }
@@ -82,12 +99,11 @@ public class CategoryController : ControllerBase
     [HttpPut("{id:int}")]
     public async Task<IActionResult> PutAsync(
         [FromRoute] int id,
-        [FromBody] EditorCategoryViewModel model,
-        [FromServices] BlogDataContext context)
+        [FromBody] EditorCategoryViewModel model)
     {
         try
         {
-            var category = await context.Categories.FirstOrDefaultAsync(c => c.Id == id);
+            var category = await _context.Categories.FirstOrDefaultAsync(c => c.Id == id);
 
             if(category == null)
                 return NotFound(new ResultViewModel<Category>("Conteúdo não encontrada."));
@@ -96,9 +112,9 @@ public class CategoryController : ControllerBase
 
             category.Slug = model.Slug;
 
-            context.Categories.Update(category);
+            _context.Categories.Update(category);
 
-            await context.SaveChangesAsync();
+            await _context.SaveChangesAsync();
         
             return Ok(new ResultViewModel<Category>(category));
         }
@@ -113,20 +129,18 @@ public class CategoryController : ControllerBase
     }
 
     [HttpDelete("{id:int}")]
-    public async Task<IActionResult> DeleteAsync(
-        [FromRoute] int id,
-        [FromServices] BlogDataContext context)
+    public async Task<IActionResult> DeleteAsync([FromRoute] int id)
     {
         try
         {
-            var category = await context.Categories.FirstOrDefaultAsync(c => c.Id == id);
+            var category = await _context.Categories.FirstOrDefaultAsync(c => c.Id == id);
 
             if(category == null)
                 return NotFound(new ResultViewModel<Category>("Conteúdo não encontrada."));
 
-            context.Categories.Remove(category);
+            _context.Categories.Remove(category);
 
-            await context.SaveChangesAsync();
+            await _context.SaveChangesAsync();
         
             return Ok(new ResultViewModel<Category>(category));
         }
